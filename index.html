@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rayshader Kamera Önizleme Aracı</title>
+    <title>KorayRender - 3D Map Simulator</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -432,35 +432,35 @@
     <div class="container">
         <!-- Sol Panel: Parametreler -->
         <div class="panel">
-            <h2>📍 Konum Seçimi</h2>
+            <h2>📍 Location Selection</h2>
             <div class="info-box">
-                Haritada bir nokta seçin veya koordinatları manuel girin
+                Click on the map to select a location or enter coordinates manually
             </div>
             
             <div class="control-group">
-                <label>Boylam (Longitude)</label>
+                <label>Longitude</label>
                 <input type="number" id="center-lon" step="0.000001" value="28.9784">
             </div>
 
             <div class="control-group">
-                <label>Enlem (Latitude)</label>
+                <label>Latitude</label>
                 <input type="number" id="center-lat" step="0.000001" value="41.0082">
             </div>
 
-            <button onclick="updateMapCenter()">Haritayı Güncelle</button>
+            <button onclick="updateMapCenter()">Update Map</button>
 
-            <h2 style="margin-top: 30px;">🎥 Kamera Parametreleri</h2>
+            <h2 style="margin-top: 30px;">🎥 Camera Parameters</h2>
             
             <div class="preset-buttons">
-                <button class="secondary" onclick="applyPreset('aerial')">Havadan</button>
-                <button class="secondary" onclick="applyPreset('street')">Sokak</button>
-                <button class="secondary" onclick="applyPreset('bird')">Kuş Bakışı</button>
-                <button class="secondary" onclick="applyPreset('dramatic')">Dramatik</button>
+                <button class="secondary" onclick="applyPreset('aerial')">Aerial</button>
+                <button class="secondary" onclick="applyPreset('street')">Street</button>
+                <button class="secondary" onclick="applyPreset('bird')">Bird's Eye</button>
+                <button class="secondary" onclick="applyPreset('dramatic')">Dramatic</button>
             </div>
 
             <div class="control-group">
                 <label>
-                    Kamera Yüksekliği (Z)
+                    Camera Height (Z)
                     <span class="value-display" id="lookfrom-z-val">1000</span>
                 </label>
                 <input type="range" id="lookfrom-z" min="100" max="5000" value="1000" step="50">
@@ -468,7 +468,7 @@
 
             <div class="control-group">
                 <label>
-                    Kamera Uzaklığı (X)
+                    Camera Distance (X)
                     <span class="value-display" id="lookfrom-x-val">0</span>
                 </label>
                 <input type="range" id="lookfrom-x" min="-3000" max="3000" value="0" step="50">
@@ -476,7 +476,7 @@
 
             <div class="control-group">
                 <label>
-                    Kamera Uzaklığı (Y)
+                    Camera Distance (Y)
                     <span class="value-display" id="lookfrom-y-val">650</span>
                 </label>
                 <input type="range" id="lookfrom-y" min="-3000" max="3000" value="650" step="50">
@@ -484,7 +484,7 @@
 
             <div class="control-group">
                 <label>
-                    Bakış Açısı (FOV)
+                    Field of View (FOV)
                     <span class="value-display" id="fov-val">60°</span>
                 </label>
                 <input type="range" id="fov" min="10" max="120" value="60" step="1">
@@ -492,7 +492,7 @@
 
             <div class="control-group">
                 <label>
-                    Odak Mesafesi (Radius)
+                    Focus Distance (Radius)
                     <span class="value-display" id="radius-val">1000</span>
                 </label>
                 <input type="range" id="radius" min="100" max="3000" value="1000" step="50">
@@ -500,7 +500,7 @@
 
             <div class="control-group">
                 <label>
-                    Kamera Rotasyonu (Theta)
+                    Camera Rotation (Theta)
                     <span class="value-display" id="theta-val">45°</span>
                 </label>
                 <input type="range" id="theta" min="0" max="360" value="45" step="5">
@@ -508,7 +508,7 @@
 
             <div class="control-group">
                 <label>
-                    Kamera Eğimi (Phi)
+                    Camera Tilt (Phi)
                     <span class="value-display" id="phi-val">30°</span>
                 </label>
                 <input type="range" id="phi" min="0" max="90" value="30" step="5">
@@ -526,35 +526,35 @@
         <!-- Sağ Panel: OSM Katmanları, Render Ayarları ve R Kodu -->
         <div class="panel">
             <div class="tab-container">
-                <button class="tab active" onclick="switchTab('layers')">🗂️ Katmanlar</button>
+                <button class="tab active" onclick="switchTab('layers')">🗂️ Layers</button>
                 <button class="tab" onclick="switchTab('render')">⚙️ Render</button>
-                <button class="tab" onclick="switchTab('code')">📝 R Kodu</button>
+                <button class="tab" onclick="switchTab('code')">📝 R Code</button>
             </div>
 
             <!-- TAB 1: KATMANLAR -->
             <div id="tab-layers" class="tab-content active">
-                <h2>🗂️ OSM Katman Seçimi</h2>
+                <h2>🗂️ OSM Layer Selection</h2>
                 
                 <!-- Binalar -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">🏢 Binalar (Buildings)</span>
+                        <span class="layer-title">🏢 Buildings</span>
                         <input type="checkbox" id="layer-buildings" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Düşük:</span>
+                        <span class="color-label">Low:</span>
                         <input type="color" id="color-bld-low" value="#c88a1e">
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Orta:</span>
+                        <span class="color-label">Mid:</span>
                         <input type="color" id="color-bld-mid" value="#b7720e">
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Yüksek:</span>
+                        <span class="color-label">High:</span>
                         <input type="color" id="color-bld-high" value="#98590a">
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Yükseklik x</span>
+                        <span class="color-label">Height x</span>
                         <input type="range" class="mini-slider" id="bld-height-mult" min="0.5" max="2" value="1" step="0.1">
                         <span class="mini-value" id="bld-height-mult-val">1.0</span>
                     </div>
@@ -563,11 +563,11 @@
                 <!-- Yeşil Alanlar -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">🌳 Yeşil Alanlar (Parks)</span>
+                        <span class="layer-title">🌳 Parks & Green Spaces</span>
                         <input type="checkbox" id="layer-parks" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Renk:</span>
+                        <span class="color-label">Color:</span>
                         <input type="color" id="color-park" value="#66A61E">
                     </div>
                 </div>
@@ -575,11 +575,11 @@
                 <!-- Su Yüzeyleri -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">💧 Su Yüzeyleri (Water)</span>
+                        <span class="layer-title">💧 Water Bodies</span>
                         <input type="checkbox" id="layer-water" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Renk:</span>
+                        <span class="color-label">Color:</span>
                         <input type="color" id="color-water" value="#3E8fe0">
                     </div>
                     <div class="color-row">
@@ -592,19 +592,19 @@
                 <!-- Yollar -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">🛣️ Yollar (Roads)</span>
+                        <span class="layer-title">🛣️ Roads</span>
                         <input type="checkbox" id="layer-roads" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Renk:</span>
+                        <span class="color-label">Color:</span>
                         <input type="color" id="color-road" value="#7e8792">
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Vurgu:</span>
+                        <span class="color-label">Highlight:</span>
                         <input type="color" id="color-road-hi" value="#e6ebf1">
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Genişlik:</span>
+                        <span class="color-label">Width:</span>
                         <input type="range" class="mini-slider" id="road-width" min="1" max="10" value="3" step="0.5">
                         <span class="mini-value" id="road-width-val">3</span>
                     </div>
@@ -613,11 +613,11 @@
                 <!-- Demiryolları -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">🚂 Demiryolları (Rails)</span>
+                        <span class="layer-title">🚂 Railways</span>
                         <input type="checkbox" id="layer-rails" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Genişlik:</span>
+                        <span class="color-label">Width:</span>
                         <input type="range" class="mini-slider" id="rail-width" min="1" max="5" value="2" step="0.5">
                         <span class="mini-value" id="rail-width-val">2</span>
                     </div>
@@ -626,11 +626,11 @@
                 <!-- Arazi Kullanımı -->
                 <div class="layer-item">
                     <div class="layer-header">
-                        <span class="layer-title">🏞️ Arazi Kullanımı (Landuse)</span>
+                        <span class="layer-title">🏞️ Land Use</span>
                         <input type="checkbox" id="layer-landuse" checked>
                     </div>
                     <div class="color-row">
-                        <span class="color-label">Renk:</span>
+                        <span class="color-label">Color:</span>
                         <input type="color" id="color-landuse" value="#b89c3a">
                     </div>
                 </div>
@@ -638,24 +638,24 @@
 
             <!-- TAB 2: RENDER AYARLARI -->
             <div id="tab-render" class="tab-content">
-                <h2>⚙️ Render Ayarları</h2>
+                <h2>⚙️ Render Settings</h2>
                 
                 <div class="control-group">
-                    <label>Çıktı Formatı</label>
+                    <label>Output Format</label>
                     <select id="aspect-ratio" style="width: 100%; padding: 8px; background: #2d2d2d; color: #fff; border: 1px solid #4fc3f7; border-radius: 4px; margin-top: 5px;">
-                        <option value="16:9">📺 Geniş (16:9) - 1920x1080</option>
-                        <option value="1:1">⬛ Kare (1:1) - 1800x1800</option>
-                        <option value="4:3">📺 Klasik (4:3) - 1600x1200</option>
-                        <option value="21:9">🎬 Sinema (21:9) - 2560x1080</option>
-                        <option value="9:16">📱 Dikey (9:16) - 1080x1920</option>
-                        <option value="custom">⚙️ Özel</option>
+                        <option value="16:9">📺 Wide (16:9) - 1920x1080</option>
+                        <option value="1:1">⬛ Square (1:1) - 1800x1800</option>
+                        <option value="4:3">📺 Classic (4:3) - 1600x1200</option>
+                        <option value="21:9">🎬 Cinema (21:9) - 2560x1080</option>
+                        <option value="9:16">📱 Vertical (9:16) - 1080x1920</option>
+                        <option value="custom">⚙️ Custom</option>
                     </select>
                 </div>
 
                 <div id="custom-dimensions" style="display: none; margin-top: 10px;">
                     <div class="control-group">
                         <label>
-                            Genişlik (Width)
+                            Width (px)
                             <span class="value-display" id="render-width-val">1800</span>
                         </label>
                         <input type="range" id="render-width" min="800" max="4000" value="1800" step="100">
@@ -663,7 +663,7 @@
 
                     <div class="control-group">
                         <label>
-                            Yükseklik (Height)
+                            Height (px)
                             <span class="value-display" id="render-height-val">1800</span>
                         </label>
                         <input type="range" id="render-height" min="800" max="4000" value="1800" step="100">
@@ -672,7 +672,7 @@
 
                 <div class="control-group">
                     <label>
-                        Kalite (Samples)
+                        Quality (Samples)
                         <span class="value-display" id="render-samples-val">100</span>
                     </label>
                     <input type="range" id="render-samples" min="50" max="500" value="100" step="50">
@@ -681,22 +681,22 @@
                 <div class="control-group">
                     <label>
                         <input type="checkbox" id="render-denoise" checked>
-                        Gürültü Azaltma (Denoise)
+                        Denoise
                     </label>
                 </div>
 
                 <div class="control-group">
                     <label>
                         <input type="checkbox" id="render-ambient" checked>
-                        Ortam Işığı (Ambient Light)
+                        Ambient Light
                     </label>
                 </div>
 
-                <h2 style="margin-top: 30px;">💡 Işık Ayarları</h2>
+                <h2 style="margin-top: 30px;">💡 Light Settings</h2>
 
                 <div class="control-group">
                     <label>
-                        Işık Şiddeti
+                        Light Intensity
                         <span class="value-display" id="light-intensity-val">15</span>
                     </label>
                     <input type="range" id="light-intensity" min="5" max="30" value="15" step="1">
@@ -704,7 +704,7 @@
 
                 <div class="control-group">
                     <label>
-                        Işık Pozisyon X
+                        Light Position X
                         <span class="value-display" id="light-x-val">-1200</span>
                     </label>
                     <input type="range" id="light-x" min="-2000" max="2000" value="-1200" step="100">
@@ -712,7 +712,7 @@
 
                 <div class="control-group">
                     <label>
-                        Işık Pozisyon Y
+                        Light Position Y
                         <span class="value-display" id="light-y-val">2500</span>
                     </label>
                     <input type="range" id="light-y" min="1000" max="5000" value="2500" step="100">
@@ -720,7 +720,7 @@
 
                 <div class="control-group">
                     <label>
-                        Işık Pozisyon Z
+                        Light Position Z
                         <span class="value-display" id="light-z-val">-1200</span>
                     </label>
                     <input type="range" id="light-z" min="-2000" max="2000" value="-1200" step="100">
@@ -728,51 +728,51 @@
 
                 <div class="control-group">
                     <label>
-                        Işık Yarıçapı
+                        Light Radius
                         <span class="value-display" id="light-radius-val">400</span>
                     </label>
                     <input type="range" id="light-radius" min="100" max="800" value="400" step="50">
                 </div>
 
-                <h2 style="margin-top: 30px;">🎨 Arka Plan</h2>
+                <h2 style="margin-top: 30px;">🎨 Background</h2>
 
                 <div class="control-group">
-                    <label>Üst Renk (Background High)</label>
+                    <label>Top Color</label>
                     <input type="color" id="bg-high" value="#FFFFFF">
                 </div>
 
                 <div class="control-group">
-                    <label>Alt Renk (Background Low)</label>
+                    <label>Bottom Color</label>
                     <input type="color" id="bg-low" value="#FFFFFF">
                 </div>
             </div>
 
             <!-- TAB 3: R KODU -->
             <div id="tab-code" class="tab-content">
-                <h2>📝 R Kod Çıktısı (Rayshader)</h2>
+                <h2>📝 R Code Output</h2>
                 <div class="info-box">
-                    Aşağıdaki kodu RStudio'da kullanabilirsiniz
+                    Copy this code and run it in RStudio
                 </div>
                 
-                <button onclick="copyCode()">📋 Kodu Kopyala</button>
+                <button onclick="copyCode()">📋 Copy Code</button>
                 
                 <div class="coords-display" id="coords-info">
-                    Merkez: 41.0082, 28.9784
+                    Center: 41.0082, 28.9784
                 </div>
                 
                 <pre id="r-code"></pre>
 
-                <h2 style="margin-top: 30px;">ℹ️ Bilgilendirme</h2>
+                <h2 style="margin-top: 30px;">ℹ️ Information</h2>
                 <div class="info-box">
-                    <strong>lookfrom:</strong> Kameranın 3D uzaydaki konumu<br><br>
-                    <strong>lookat:</strong> Kameranın baktığı nokta (genelde [0,0,0])<br><br>
-                    <strong>fov:</strong> Görüş açısı (Field of View)<br><br>
-                    <strong>radius:</strong> Odak mesafesi<br><br>
-                    <strong>theta:</strong> Yatay rotasyon<br><br>
-                    <strong>phi:</strong> Dikey eğim
+                    <strong>lookfrom:</strong> Camera position in 3D space<br><br>
+                    <strong>lookat:</strong> Point where camera is looking (usually [0,0,0])<br><br>
+                    <strong>fov:</strong> Field of View angle<br><br>
+                    <strong>radius:</strong> Focus distance<br><br>
+                    <strong>theta:</strong> Horizontal rotation<br><br>
+                    <strong>phi:</strong> Vertical tilt
                 </div>
 
-                <button class="secondary" onclick="exportSettings()">💾 Ayarları Kaydet (JSON)</button>
+                <button class="secondary" onclick="exportSettings()">💾 Export Settings (JSON)</button>
             </div>
         </div>
     </div>
@@ -843,14 +843,14 @@
             const angle = Math.atan2(dx, dy) * 180 / Math.PI;
             const normalized = (angle + 360) % 360;
             
-            if (normalized >= 337.5 || normalized < 22.5) return "Kuzey ⬆️";
-            if (normalized >= 22.5 && normalized < 67.5) return "Kuzeydoğu ↗️";
-            if (normalized >= 67.5 && normalized < 112.5) return "Doğu ➡️";
-            if (normalized >= 112.5 && normalized < 157.5) return "Güneydoğu ↘️";
-            if (normalized >= 157.5 && normalized < 202.5) return "Güney ⬇️";
-            if (normalized >= 202.5 && normalized < 247.5) return "Güneybatı ↙️";
-            if (normalized >= 247.5 && normalized < 292.5) return "Batı ⬅️";
-            if (normalized >= 292.5 && normalized < 337.5) return "Kuzeybatı ↖️";
+            if (normalized >= 337.5 || normalized < 22.5) return "North ⬆️";
+            if (normalized >= 22.5 && normalized < 67.5) return "Northeast ↗️";
+            if (normalized >= 67.5 && normalized < 112.5) return "East ➡️";
+            if (normalized >= 112.5 && normalized < 157.5) return "Southeast ↘️";
+            if (normalized >= 157.5 && normalized < 202.5) return "South ⬇️";
+            if (normalized >= 202.5 && normalized < 247.5) return "Southwest ↙️";
+            if (normalized >= 247.5 && normalized < 292.5) return "West ⬅️";
+            if (normalized >= 292.5 && normalized < 337.5) return "Northwest ↖️";
         }
 
         // Canvas ve 3D Görselleştirme
@@ -1059,7 +1059,7 @@
             const direction = getDirectionName(camY, camX, centerY, centerX);
             ctx.fillStyle = '#ffeb3b';
             ctx.font = 'bold 14px Segoe UI';
-            ctx.fillText(`📷 Kamera Bakış Yönü: ${direction}`, 20, 30);
+            ctx.fillText(`📷 Camera Direction: ${direction}`, 20, 30);
             
             // Radius gösterimi
             ctx.fillStyle = '#81c784';
@@ -1074,10 +1074,10 @@
             
             ctx.fillStyle = '#4fc3f7';
             ctx.font = 'bold 11px Segoe UI';
-            ctx.fillText('ℹ️ Görünüm:', 20, canvas.height - 52);
+            ctx.fillText('ℹ️ View:', 20, canvas.height - 52);
             ctx.font = '10px Segoe UI';
-            ctx.fillText(`• Kırmızı ok: Kamera pozisyonu ve bakış yönü`, 20, canvas.height - 35);
-            ctx.fillText(`• Mavi nokta: Render merkezi (lookat noktası)`, 20, canvas.height - 20);
+            ctx.fillText(`• Red arrow: Camera position & direction`, 20, canvas.height - 35);
+            ctx.fillText(`• Blue dot: Render center (lookat point)`, 20, canvas.height - 20);
         }
 
         function updateRCode() {
@@ -1128,15 +1128,15 @@
             const bgHigh = document.getElementById('bg-high').value;
             const bgLow = document.getElementById('bg-low').value;
 
-            const code = `# Rayshader 3D Harita Render Scripti
-# Oluşturulma: ${new Date().toLocaleString('tr-TR')}
+            const code = `# RayRender 3D Map Render Script
+# Created: ${new Date().toLocaleString('en-US')}
 
-# Gerekli kütüphaneler
+# Required libraries
 pacman::p_load(
     osmdata, sf, dplyr, rayrender
 )
 
-# Merkez koordinatları
+# Center coordinates
 lon <- ${lon}
 lat <- ${lat}
 
@@ -1144,7 +1144,7 @@ ctr_wgs <- sf::st_sfc(
     sf::st_point(c(lon, lat)), crs = 4326
 )
 
-# UTM projeksiyonu
+# UTM projection
 utm_epsg <- function(lon, lat) {
     stopifnot(is.finite(lon), is.finite(lat))
     if (lat >= 84) return(32661)
@@ -1160,7 +1160,7 @@ aoi_m <- sf::st_buffer(ctr_m, radius)
 aoi_wgs <- sf::st_transform(aoi_m, 4326)
 bb <- sf::st_bbox(aoi_wgs)
 
-# OSM veri çekme fonksiyonları
+# OSM data fetching functions
 get_polys <- function(q) {
     Sys.sleep(2)
     tryCatch({
@@ -1177,7 +1177,7 @@ get_polys <- function(q) {
         }
         dplyr::bind_rows(polys)
     }, error = function(e) {
-        message("Hata: ", conditionMessage(e))
+        message("Error: ", conditionMessage(e))
         return(sf::st_sf(geometry = sf::st_sfc(crs = 4326)))
     })
 }
@@ -1191,29 +1191,29 @@ get_lines <- function(q) {
             sf::st_make_valid(x)
         }
     }, error = function(e) {
-        message("Hata: ", conditionMessage(e))
+        message("Error: ", conditionMessage(e))
         return(sf::st_sf(geometry = sf::st_sfc(crs = 4326)))
     })
 }
 
-# OSM verilerini çek
+# Fetch OSM data
 
-${layerBuildings ? `message("Binalar çekiliyor...")
+${layerBuildings ? `message("Fetching buildings...")
 bld <- get_polys(osmdata::opq(bb, timeout = 180) |>
     osmdata::add_osm_feature("building"))
-` : '# Binalar devre dışı\nbld <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+` : '# Buildings layer disabled\nbld <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
 
-${layerLanduse ? `message("Arazi kullanımı çekiliyor...")
+${layerLanduse ? `message("Fetching land use...")
 landuse <- get_polys(osmdata::opq(bb, timeout = 180) |>
     osmdata::add_osm_feature("landuse"))
-` : '# Arazi kullanımı devre dışı\nlanduse <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+` : '# Land use layer disabled\nlanduse <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
 ${layerParks ? `
 green_cover <- if (nrow(landuse) > 0) {
     subset(landuse, landuse %in% c("grass", "recreation_ground", "forest", "greenery"))
 } else {
     sf::st_sf(geometry = sf::st_sfc(crs = 4326))
 }
-message("Parklar çekiliyor...")
+message("Fetching parks...")
 parks <- dplyr::bind_rows(
     green_cover,
     get_polys(osmdata::opq(bb, timeout = 180) |>
@@ -1221,9 +1221,9 @@ parks <- dplyr::bind_rows(
     get_polys(osmdata::opq(bb, timeout = 180) |>
         osmdata::add_osm_feature("natural", c("wood", "scrub")))
 )
-` : '# Parklar devre dışı\nparks <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+` : '# Parks layer disabled\nparks <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
 
-${layerWater ? `message("Su yüzeyleri çekiliyor...")
+${layerWater ? `message("Fetching water bodies...")
 water <- dplyr::bind_rows(
     get_polys(osmdata::opq(bb, timeout = 180) |>
         osmdata::add_osm_feature("natural", c("water", "bay", "sea", "lagoon"))),
@@ -1233,19 +1233,19 @@ water <- dplyr::bind_rows(
         osmdata::add_osm_feature("waterway", "riverbank"))
 )
 if (nrow(water) > 0) water <- dplyr::distinct(water)
-` : '# Su yüzeyleri devre dışı\nwater <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+` : '# Water bodies layer disabled\nwater <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
 
-${layerRoads ? `message("Yollar çekiliyor...")
+${layerRoads ? `message("Fetching roads...")
 roads <- get_lines(osmdata::opq(bb, timeout = 180) |>
     osmdata::add_osm_feature("highway"))
-` : '# Yollar devre dışı\nroads <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+` : '# Roads layer disabled\nroads <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
 
-${layerRails ? `message("Demiryolları çekiliyor...")
+${layerRails ? `message("Fetching railways...")
 rails <- get_lines(osmdata::opq(bb, timeout = 180) |>
     osmdata::add_osm_feature("railway"))
-` : '# Demiryolları devre dışı\nrails <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
-message("Veriler başarıyla çekildi!")
-# Verileri kırp ve projekte et
+` : '# Railways layer disabled\nrails <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+message("Data fetched successfully!")
+# Clip and project data
 clip_m <- function(x) {
     if (is.null(x) || nrow(x) == 0) {
         return(sf::st_sf(geometry = sf::st_sfc(crs = crs_m)))
@@ -1274,7 +1274,7 @@ if (nrow(water) > 0) {
 roads <- clip_m(roads)
 rails <- clip_m(rails)
 
-# Bina yükseklikleri
+# Building heights
 if (nrow(bld) > 0) {
     h_raw <- suppressWarnings(as.numeric(gsub(",", ".", bld$height)))
     levraw <- suppressWarnings(as.numeric(gsub(",", ".", bld$\`building:levels\`)))
@@ -1284,12 +1284,12 @@ if (nrow(bld) > 0) {
     bld$h <- pmin(bld$h * ${bldHeightMult}, 80)
 }
 
-# Yol ve ray buffer'ları
+# Road and railway buffers
 roads_buf <- if (nrow(roads) > 0) sf::st_buffer(roads, ${roadWidth}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
 rails_buf <- if (nrow(rails) > 0) sf::st_buffer(rails, ${railWidth}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
 roads_crown <- if (nrow(roads) > 0) sf::st_buffer(roads, ${roadWidth * 0.43}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
 
-# Merkeze kaydır
+# Recenter to origin
 center_xy <- sf::st_coordinates(ctr_m)[1, 1:2]
 recenter <- function(x) {
     if (is.null(x) || nrow(x) == 0) return(x)
@@ -1305,7 +1305,7 @@ roads_buf <- recenter(roads_buf)
 rails_buf <- recenter(rails_buf)
 roads_crown <- recenter(roads_crown)
 
-# Renk paleti ve materyaller
+# Color palette and materials
 col_bld_low <- "${colorBldLow}"
 col_bld_mid <- "${colorBldMid}"
 col_bld_high <- "${colorBldHigh}"
@@ -1321,7 +1321,7 @@ mat_road <- rayrender::diffuse(col_road)
 mat_road_hi <- rayrender::diffuse(col_road_hi)
 mat_water <- rayrender::metal(color = col_water, fuzz = ${waterFuzz})
 
-# Sahne objelerini oluştur
+# Create scene objects
 objs <- list()
 
 if (nrow(landuse) > 0) {
@@ -1355,7 +1355,7 @@ if (nrow(roads_crown) > 0) {
     ))
 }
 
-# Bina yükseklik kategorileri
+# Building height categories
 bin_buildings <- function(bld) {
     bld <- bld[!is.na(bld$h) & is.finite(bld$h) & bld$h > 0, ]
     if (nrow(bld) == 0) return(bld)
@@ -1369,7 +1369,7 @@ bld <- bin_buildings(bld)
 pal <- c(low = col_bld_low, mid = col_bld_mid, high = col_bld_high)
 mat_map <- setNames(lapply(pal, rayrender::diffuse), names(pal))
 
-# Binaları sahneye ekle
+# Add buildings to scene
 add_buildings <- function(scene, b) {
     if (is.null(b) || nrow(b) == 0) return(scene)
     for(lev in levels(b$bin)) {
@@ -1383,16 +1383,16 @@ add_buildings <- function(scene, b) {
     scene
 }
 
-# Sahneyi oluştur
+# Build scene
 scene <- objs[[1]]
 if (length(objs) > 1) for (i in 2:length(objs)) scene <- rayrender::add_object(scene, objs[[i]])
 scene <- add_buildings(scene, bld)
 
-# Kamera ayarları
+# Camera settings
 lookfrom <- c(${lookFromX}, ${lookFromZ}, ${lookFromY})
 lookat <- c(0, 50, 10)
 
-# Işık kaynağı
+# Light source
 scene <- rayrender::add_object(scene,
     rayrender::sphere(
         x = ${lightX}, y = ${lightY}, z = ${lightZ}, 
@@ -1425,7 +1425,7 @@ rayrender::render_scene(
 
             document.getElementById('r-code').textContent = code;
             document.getElementById('coords-info').textContent = 
-                `Merkez: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)} | Radius: ${radius}m`;
+                `Center: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)} | Radius: ${radius}m`;
         }
 
         function updateMapCenter() {
@@ -1454,7 +1454,7 @@ rayrender::render_scene(
         function copyCode() {
             const code = document.getElementById('r-code').textContent;
             navigator.clipboard.writeText(code).then(() => {
-                alert('R kodu panoya kopyalandı!');
+                alert('R code copied to clipboard!');
             });
         }
 
