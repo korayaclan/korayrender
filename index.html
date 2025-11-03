@@ -783,6 +783,8 @@
         let map = L.map('map').setView([41.0082, 28.9784], 13);
         let marker = null;
         let radiusCircle = null;
+        let isDraggingRadius = false;
+        let radiusMarker = null;
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -824,16 +826,84 @@
                 map.removeLayer(radiusCircle);
             }
             
-            // Radius değerini metre cinsine çevir (yaklaşık olarak)
+            if (radiusMarker) {
+                map.removeLayer(radiusMarker);
+            }
+            
+            // Radius çemberini oluştur
             radiusCircle = L.circle([lat, lon], {
                 color: '#ff6b35',
                 fillColor: '#ff9966',
                 fillOpacity: 0.25,
-                radius: radius, // metre cinsinden
+                radius: radius,
                 weight: 3,
                 dashArray: '5, 10',
-                interactive: false  // Çemberin tıklanabilir olmasını engelle
+                interactive: false
             }).addTo(map);
+            
+            // Radius kenarında sürüklenebilir marker ekle
+            const angle = 45; // Sağ üst köşede marker
+            const earthRadius = 6371000; // metre
+            const dLat = (radius / earthRadius) * (180 / Math.PI);
+            const dLon = (radius / earthRadius) * (180 / Math.PI) / Math.cos(lat * Math.PI / 180);
+            
+            const markerLat = lat + dLat * Math.cos(angle * Math.PI / 180);
+            const markerLon = lon + dLon * Math.sin(angle * Math.PI / 180);
+            
+            // Özel icon oluştur
+            const radiusIcon = L.divIcon({
+                className: 'radius-drag-marker',
+                html: '<div style="width: 20px; height: 20px; background: #ff6b35; border: 3px solid white; border-radius: 50%; cursor: move; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            
+            radiusMarker = L.marker([markerLat, markerLon], {
+                icon: radiusIcon,
+                draggable: true
+            }).addTo(map);
+            
+            // Radius marker sürüklendiğinde
+            radiusMarker.on('drag', function(e) {
+                const markerPos = radiusMarker.getLatLng();
+                const centerLat = parseFloat(document.getElementById('center-lat').value);
+                const centerLon = parseFloat(document.getElementById('center-lon').value);
+                
+                // İki nokta arası mesafeyi hesapla (Haversine formülü)
+                const R = 6371000; // Dünya yarıçapı metre cinsinden
+                const dLat = (markerPos.lat - centerLat) * Math.PI / 180;
+                const dLon = (markerPos.lng - centerLon) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(centerLat * Math.PI / 180) * Math.cos(markerPos.lat * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distance = R * c;
+                
+                // Radius değerini güncelle (100-3000 arası sınırla)
+                const newRadius = Math.max(100, Math.min(3000, Math.round(distance)));
+                
+                document.getElementById('radius').value = newRadius;
+                document.getElementById('radius-val').textContent = newRadius;
+                
+                // Çemberi güncelle
+                if (radiusCircle) {
+                    map.removeLayer(radiusCircle);
+                }
+                radiusCircle = L.circle([centerLat, centerLon], {
+                    color: '#ff6b35',
+                    fillColor: '#ff9966',
+                    fillOpacity: 0.25,
+                    radius: newRadius,
+                    weight: 3,
+                    dashArray: '5, 10',
+                    interactive: false
+                }).addTo(map);
+            });
+            
+            // Sürükleme bittiğinde R kodunu güncelle
+            radiusMarker.on('dragend', function(e) {
+                updateRCode();
+            });
         }
         
         // Kamera yönünü belirle
