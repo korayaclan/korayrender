@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rayshader Kamera Önizleme Aracı</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header Bar */
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #4fc3f7;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .github-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #e0e0e0;
+            background: #2d2d2d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #3e3e3e;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .github-link:hover {
+            background: #3e3e3e;
+            border-color: #4fc3f7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 195, 247, 0.2);
+        }
+
+        .github-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4fc3f7 0%, #81c784 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: #b0b0b0;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: #2d2d2d;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #3e3e3e;
+        }
+
+        .panel:last-child {
+            border-right: none;
+            border-left: 1px solid #3e3e3e;
+        }
+
+        h2 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #4fc3f7;
+            padding-bottom: 10px;
+        }
+
+        .main-view {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map {
+            height: 50%;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        #canvas-container {
+            height: 50%;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        #preview-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background: #1e1e1e;
+            border: 1px solid #3e3e3e;
+            color: #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .value-display {
+            display: block;
+            background: #1e1e1e;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #4fc3f7;
+            float: right;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4fc3f7;
+            color: #1e1e1e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #29b6f6;
+        }
+
+        button.secondary {
+            background: #666;
+            color: #fff;
+        }
+
+        button.secondary:hover {
+            background: #777;
+        }
+
+        #r-code {
+            background: #1e1e1e;
+            padding: 15px;
+            border: 1px solid #3e3e3e;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            color: #a9b7c6;
+        }
+
+        .coords-display {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #81c784;
+        }
+
+        .info-box {
+            background: #263238;
+            padding: 12px;
+            border-left: 3px solid #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preset-buttons button {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4fc3f7;
+            border-radius: 4px;
+        }
+
+        .leaflet-popup-content {
+            color: #1e1e1e;
+        }
+
+        /* Yeni stiller: Katman ve Renk Paneli */
+        .section-header {
+            color: #81c784;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #1e1e1e;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: #252525;
+        }
+
+        .section-header::before {
+            content: '▼ ';
+            font-size: 10px;
+            margin-right: 5px;
+        }
+
+        .section-header.collapsed::before {
+            content: '▶ ';
+        }
+
+        .section-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+        }
+
+        .layer-item {
+            background: #1e1e1e;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #4fc3f7;
+        }
+
+        .layer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .layer-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #e0e0e0;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4fc3f7;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 30px;
+            border: 1px solid #3e3e3e;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #1e1e1e;
+        }
+
+        .color-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .color-label {
+            font-size: 11px;
+            color: #b0b0b0;
+            min-width: 80px;
+        }
+
+        .mini-slider {
+            flex: 1;
+            margin: 0;
+        }
+
+        .mini-value {
+            font-size: 11px;
+            color: #4fc3f7;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3e3e3e;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            background: #1e1e1e;
+            border: none;
+            color: #b0b0b0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #252525;
+            color: #e0e0e0;
+        }
+
+        .tab.active {
+            background: #4fc3f7;
+            color: #1e1e1e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Bar -->
+    <div class="header">
+        <div class="header-left">
+            <div>
+                <div class="logo-text">KorayRender</div>
+                <div class="subtitle">RStudio 3D Map Simulator</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="https://github.com/korayaclan" target="_blank" class="github-link">
+                <svg class="github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                korayaclan
+            </a>
+            <a href="https://x.com/kryaclan" target="_blank" class="github-link">
+                <svg class="github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                kryaclan
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sol Panel: Parametreler -->
+        <div class="panel">
+            <h2>📍 Konum Seçimi</h2>
+            <div class="info-box">
+                Haritada bir nokta seçin veya koordinatları manuel girin
+            </div>
+            
+            <div class="control-group">
+                <label>Boylam (Longitude)</label>
+                <input type="number" id="center-lon" step="0.000001" value="28.9784">
+            </div>
+
+            <div class="control-group">
+                <label>Enlem (Latitude)</label>
+                <input type="number" id="center-lat" step="0.000001" value="41.0082">
+            </div>
+
+            <button onclick="updateMapCenter()">Haritayı Güncelle</button>
+
+            <h2 style="margin-top: 30px;">🎥 Kamera Parametreleri</h2>
+            
+            <div class="preset-buttons">
+                <button class="secondary" onclick="applyPreset('aerial')">Havadan</button>
+                <button class="secondary" onclick="applyPreset('street')">Sokak</button>
+                <button class="secondary" onclick="applyPreset('bird')">Kuş Bakışı</button>
+                <button class="secondary" onclick="applyPreset('dramatic')">Dramatik</button>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Kamera Yüksekliği (Z)
+                    <span class="value-display" id="lookfrom-z-val">1000</span>
+                </label>
+                <input type="range" id="lookfrom-z" min="100" max="5000" value="1000" step="50">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Kamera Uzaklığı (X)
+                    <span class="value-display" id="lookfrom-x-val">0</span>
+                </label>
+                <input type="range" id="lookfrom-x" min="-3000" max="3000" value="0" step="50">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Kamera Uzaklığı (Y)
+                    <span class="value-display" id="lookfrom-y-val">650</span>
+                </label>
+                <input type="range" id="lookfrom-y" min="-3000" max="3000" value="650" step="50">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Bakış Açısı (FOV)
+                    <span class="value-display" id="fov-val">60°</span>
+                </label>
+                <input type="range" id="fov" min="10" max="120" value="60" step="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Odak Mesafesi (Radius)
+                    <span class="value-display" id="radius-val">1000</span>
+                </label>
+                <input type="range" id="radius" min="100" max="3000" value="1000" step="50">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Kamera Rotasyonu (Theta)
+                    <span class="value-display" id="theta-val">45°</span>
+                </label>
+                <input type="range" id="theta" min="0" max="360" value="45" step="5">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Kamera Eğimi (Phi)
+                    <span class="value-display" id="phi-val">30°</span>
+                </label>
+                <input type="range" id="phi" min="0" max="90" value="30" step="5">
+            </div>
+        </div>
+
+        <!-- Orta Panel: Harita ve 3D Önizleme -->
+        <div class="main-view">
+            <div id="map"></div>
+            <div id="canvas-container">
+                <canvas id="preview-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Sağ Panel: OSM Katmanları, Render Ayarları ve R Kodu -->
+        <div class="panel">
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('layers')">🗂️ Katmanlar</button>
+                <button class="tab" onclick="switchTab('render')">⚙️ Render</button>
+                <button class="tab" onclick="switchTab('code')">📝 R Kodu</button>
+            </div>
+
+            <!-- TAB 1: KATMANLAR -->
+            <div id="tab-layers" class="tab-content active">
+                <h2>🗂️ OSM Katman Seçimi</h2>
+                
+                <!-- Binalar -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">🏢 Binalar (Buildings)</span>
+                        <input type="checkbox" id="layer-buildings" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Düşük:</span>
+                        <input type="color" id="color-bld-low" value="#c88a1e">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Orta:</span>
+                        <input type="color" id="color-bld-mid" value="#b7720e">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Yüksek:</span>
+                        <input type="color" id="color-bld-high" value="#98590a">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Yükseklik x</span>
+                        <input type="range" class="mini-slider" id="bld-height-mult" min="0.5" max="2" value="1" step="0.1">
+                        <span class="mini-value" id="bld-height-mult-val">1.0</span>
+                    </div>
+                </div>
+
+                <!-- Yeşil Alanlar -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">🌳 Yeşil Alanlar (Parks)</span>
+                        <input type="checkbox" id="layer-parks" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Renk:</span>
+                        <input type="color" id="color-park" value="#66A61E">
+                    </div>
+                </div>
+
+                <!-- Su Yüzeyleri -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">💧 Su Yüzeyleri (Water)</span>
+                        <input type="checkbox" id="layer-water" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Renk:</span>
+                        <input type="color" id="color-water" value="#3E8fe0">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Metal Fuzz:</span>
+                        <input type="range" class="mini-slider" id="water-fuzz" min="0" max="1" value="0.5" step="0.1">
+                        <span class="mini-value" id="water-fuzz-val">0.5</span>
+                    </div>
+                </div>
+
+                <!-- Yollar -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">🛣️ Yollar (Roads)</span>
+                        <input type="checkbox" id="layer-roads" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Renk:</span>
+                        <input type="color" id="color-road" value="#7e8792">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Vurgu:</span>
+                        <input type="color" id="color-road-hi" value="#e6ebf1">
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Genişlik:</span>
+                        <input type="range" class="mini-slider" id="road-width" min="1" max="10" value="3" step="0.5">
+                        <span class="mini-value" id="road-width-val">3</span>
+                    </div>
+                </div>
+
+                <!-- Demiryolları -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">🚂 Demiryolları (Rails)</span>
+                        <input type="checkbox" id="layer-rails" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Genişlik:</span>
+                        <input type="range" class="mini-slider" id="rail-width" min="1" max="5" value="2" step="0.5">
+                        <span class="mini-value" id="rail-width-val">2</span>
+                    </div>
+                </div>
+
+                <!-- Arazi Kullanımı -->
+                <div class="layer-item">
+                    <div class="layer-header">
+                        <span class="layer-title">🏞️ Arazi Kullanımı (Landuse)</span>
+                        <input type="checkbox" id="layer-landuse" checked>
+                    </div>
+                    <div class="color-row">
+                        <span class="color-label">Renk:</span>
+                        <input type="color" id="color-landuse" value="#b89c3a">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: RENDER AYARLARI -->
+            <div id="tab-render" class="tab-content">
+                <h2>⚙️ Render Ayarları</h2>
+                
+                <div class="control-group">
+                    <label>Çıktı Formatı</label>
+                    <select id="aspect-ratio" style="width: 100%; padding: 8px; background: #2d2d2d; color: #fff; border: 1px solid #4fc3f7; border-radius: 4px; margin-top: 5px;">
+                        <option value="16:9">📺 Geniş (16:9) - 1920x1080</option>
+                        <option value="1:1">⬛ Kare (1:1) - 1800x1800</option>
+                        <option value="4:3">📺 Klasik (4:3) - 1600x1200</option>
+                        <option value="21:9">🎬 Sinema (21:9) - 2560x1080</option>
+                        <option value="9:16">📱 Dikey (9:16) - 1080x1920</option>
+                        <option value="custom">⚙️ Özel</option>
+                    </select>
+                </div>
+
+                <div id="custom-dimensions" style="display: none; margin-top: 10px;">
+                    <div class="control-group">
+                        <label>
+                            Genişlik (Width)
+                            <span class="value-display" id="render-width-val">1800</span>
+                        </label>
+                        <input type="range" id="render-width" min="800" max="4000" value="1800" step="100">
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            Yükseklik (Height)
+                            <span class="value-display" id="render-height-val">1800</span>
+                        </label>
+                        <input type="range" id="render-height" min="800" max="4000" value="1800" step="100">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Kalite (Samples)
+                        <span class="value-display" id="render-samples-val">100</span>
+                    </label>
+                    <input type="range" id="render-samples" min="50" max="500" value="100" step="50">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="render-denoise" checked>
+                        Gürültü Azaltma (Denoise)
+                    </label>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="render-ambient" checked>
+                        Ortam Işığı (Ambient Light)
+                    </label>
+                </div>
+
+                <h2 style="margin-top: 30px;">💡 Işık Ayarları</h2>
+
+                <div class="control-group">
+                    <label>
+                        Işık Şiddeti
+                        <span class="value-display" id="light-intensity-val">15</span>
+                    </label>
+                    <input type="range" id="light-intensity" min="5" max="30" value="15" step="1">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Işık Pozisyon X
+                        <span class="value-display" id="light-x-val">-1200</span>
+                    </label>
+                    <input type="range" id="light-x" min="-2000" max="2000" value="-1200" step="100">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Işık Pozisyon Y
+                        <span class="value-display" id="light-y-val">2500</span>
+                    </label>
+                    <input type="range" id="light-y" min="1000" max="5000" value="2500" step="100">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Işık Pozisyon Z
+                        <span class="value-display" id="light-z-val">-1200</span>
+                    </label>
+                    <input type="range" id="light-z" min="-2000" max="2000" value="-1200" step="100">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Işık Yarıçapı
+                        <span class="value-display" id="light-radius-val">400</span>
+                    </label>
+                    <input type="range" id="light-radius" min="100" max="800" value="400" step="50">
+                </div>
+
+                <h2 style="margin-top: 30px;">🎨 Arka Plan</h2>
+
+                <div class="control-group">
+                    <label>Üst Renk (Background High)</label>
+                    <input type="color" id="bg-high" value="#FFFFFF">
+                </div>
+
+                <div class="control-group">
+                    <label>Alt Renk (Background Low)</label>
+                    <input type="color" id="bg-low" value="#FFFFFF">
+                </div>
+            </div>
+
+            <!-- TAB 3: R KODU -->
+            <div id="tab-code" class="tab-content">
+                <h2>📝 R Kod Çıktısı (Rayshader)</h2>
+                <div class="info-box">
+                    Aşağıdaki kodu RStudio'da kullanabilirsiniz
+                </div>
+                
+                <button onclick="copyCode()">📋 Kodu Kopyala</button>
+                
+                <div class="coords-display" id="coords-info">
+                    Merkez: 41.0082, 28.9784
+                </div>
+                
+                <pre id="r-code"></pre>
+
+                <h2 style="margin-top: 30px;">ℹ️ Bilgilendirme</h2>
+                <div class="info-box">
+                    <strong>lookfrom:</strong> Kameranın 3D uzaydaki konumu<br><br>
+                    <strong>lookat:</strong> Kameranın baktığı nokta (genelde [0,0,0])<br><br>
+                    <strong>fov:</strong> Görüş açısı (Field of View)<br><br>
+                    <strong>radius:</strong> Odak mesafesi<br><br>
+                    <strong>theta:</strong> Yatay rotasyon<br><br>
+                    <strong>phi:</strong> Dikey eğim
+                </div>
+
+                <button class="secondary" onclick="exportSettings()">💾 Ayarları Kaydet (JSON)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Leaflet Harita Kurulumu
+        let map = L.map('map').setView([41.0082, 28.9784], 13);
+        let marker = null;
+        let radiusCircle = null;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Haritaya tıklama eventi
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            if (marker) {
+                marker.setLatLng([lat, lng]);
+            } else {
+                marker = L.marker([lat, lng], {draggable: true}).addTo(map);
+                marker.on('dragend', function(e) {
+                    const pos = marker.getLatLng();
+                    document.getElementById('center-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('center-lon').value = pos.lng.toFixed(6);
+                    updateRadiusCircle();
+                    updateRCode();
+                });
+            }
+            
+            document.getElementById('center-lat').value = lat.toFixed(6);
+            document.getElementById('center-lon').value = lng.toFixed(6);
+            
+            updateRadiusCircle();
+            updateRCode();
+        });
+
+        // Radius çemberini güncelle
+        function updateRadiusCircle() {
+            const lat = parseFloat(document.getElementById('center-lat').value);
+            const lon = parseFloat(document.getElementById('center-lon').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+            const theta = parseFloat(document.getElementById('theta').value);
+            
+            if (radiusCircle) {
+                map.removeLayer(radiusCircle);
+            }
+            
+            // Radius değerini metre cinsine çevir (yaklaşık olarak)
+            radiusCircle = L.circle([lat, lon], {
+                color: '#ff6b35',
+                fillColor: '#ff9966',
+                fillOpacity: 0.25,
+                radius: radius, // metre cinsinden
+                weight: 3,
+                dashArray: '5, 10',
+                interactive: false  // Çemberin tıklanabilir olmasını engelle
+            }).addTo(map);
+        }
+        
+        // Kamera yönünü belirle
+        function getDirectionName(camLat, camLon, targetLat, targetLon) {
+            const dx = targetLon - camLon;
+            const dy = targetLat - camLat;
+            const angle = Math.atan2(dx, dy) * 180 / Math.PI;
+            const normalized = (angle + 360) % 360;
+            
+            if (normalized >= 337.5 || normalized < 22.5) return "Kuzey ⬆️";
+            if (normalized >= 22.5 && normalized < 67.5) return "Kuzeydoğu ↗️";
+            if (normalized >= 67.5 && normalized < 112.5) return "Doğu ➡️";
+            if (normalized >= 112.5 && normalized < 157.5) return "Güneydoğu ↘️";
+            if (normalized >= 157.5 && normalized < 202.5) return "Güney ⬇️";
+            if (normalized >= 202.5 && normalized < 247.5) return "Güneybatı ↙️";
+            if (normalized >= 247.5 && normalized < 292.5) return "Batı ⬅️";
+            if (normalized >= 292.5 && normalized < 337.5) return "Kuzeybatı ↖️";
+        }
+
+        // Canvas ve 3D Görselleştirme
+        const canvas = document.getElementById('preview-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            draw3DPreview();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Canvas mouse interaksiyonu için değişkenler
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        // Mouse event'leri
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 0.15;
+            
+            const lookFromX = parseFloat(document.getElementById('lookfrom-x').value);
+            const lookFromY = parseFloat(document.getElementById('lookfrom-y').value);
+            
+            const camX = centerX + lookFromX * scale;
+            const camY = centerY + lookFromY * scale;
+            
+            // Kamera ikonuna tıklanmış mı kontrol et (10px yarıçap)
+            const distance = Math.sqrt((mouseX - camX)**2 + (mouseY - camY)**2);
+            if (distance <= 15) {
+                isDragging = true;
+                dragOffset.x = mouseX - camX;
+                dragOffset.y = mouseY - camY;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 0.15;
+            
+            if (isDragging) {
+                // Yeni kamera pozisyonunu hesapla
+                const newCamX = mouseX - dragOffset.x;
+                const newCamY = mouseY - dragOffset.y;
+                
+                // Canvas koordinatlarını lookfrom değerlerine çevir
+                const newLookFromX = (newCamX - centerX) / scale;
+                const newLookFromY = (newCamY - centerY) / scale;
+                
+                // Input değerlerini güncelle
+                document.getElementById('lookfrom-x').value = Math.round(newLookFromX);
+                document.getElementById('lookfrom-y').value = Math.round(newLookFromY);
+                document.getElementById('lookfrom-x-val').textContent = Math.round(newLookFromX);
+                document.getElementById('lookfrom-y-val').textContent = Math.round(newLookFromY);
+                
+                // Görselleştirmeyi güncelle
+                draw3DPreview();
+                updateRCode();
+                updateRadiusCircle();
+            } else {
+                // Hover kontrolü
+                const lookFromX = parseFloat(document.getElementById('lookfrom-x').value);
+                const lookFromY = parseFloat(document.getElementById('lookfrom-y').value);
+                const camX = centerX + lookFromX * scale;
+                const camY = centerY + lookFromY * scale;
+                
+                const distance = Math.sqrt((mouseX - camX)**2 + (mouseY - camY)**2);
+                canvas.style.cursor = distance <= 15 ? 'grab' : 'default';
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+            
+        const params = ['lookfrom-z', 'lookfrom-x', 'lookfrom-y', 'fov', 'radius', 'theta', 'phi'];
+        
+        params.forEach(param => {
+            const input = document.getElementById(param);
+            const display = document.getElementById(param + '-val');
+            
+            input.addEventListener('input', function() {
+                let value = this.value;
+                if (param === 'fov' || param === 'theta' || param === 'phi') {
+                    display.textContent = value + '°';
+                } else {
+                    display.textContent = value;
+                }
+                
+                // Radius veya kamera pozisyonu değiştiğinde çemberi ve oku güncelle
+                if (param === 'radius' || param === 'lookfrom-x' || param === 'lookfrom-y') {
+                    updateRadiusCircle();
+                }
+                
+                draw3DPreview();
+                updateRCode();
+            });
+        });
+
+        function draw3DPreview() {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Grid çizimi
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let i = -5; i <= 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * 50, 0);
+                ctx.lineTo(centerX + i * 50, canvas.height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, centerY + i * 50);
+                ctx.lineTo(canvas.width, centerY + i * 50);
+                ctx.stroke();
+            }
+
+            // Parametreleri al
+            const lookFromZ = parseFloat(document.getElementById('lookfrom-z').value);
+            const lookFromX = parseFloat(document.getElementById('lookfrom-x').value);
+            const lookFromY = parseFloat(document.getElementById('lookfrom-y').value);
+            const fov = parseFloat(document.getElementById('fov').value);
+            const radius = parseFloat(document.getElementById('radius').value);
+            const theta = parseFloat(document.getElementById('theta').value);
+
+            // Merkez nokta (lookat)
+            ctx.fillStyle = '#4fc3f7';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#4fc3f7';
+            ctx.font = '12px Segoe UI';
+            ctx.fillText('Lookat (0,0,0)', centerX + 15, centerY - 10);
+
+            // Kamera konumu
+            const scale = 0.15;
+            const camX = centerX + lookFromX * scale;
+            const camY = centerY + lookFromY * scale;
+            
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(camX, camY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Kamera yönü çizgisi
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(camX, camY);
+            ctx.lineTo(centerX, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // FOV görsel gösterimi
+            const fovRad = (fov * Math.PI) / 180;
+            const angle = Math.atan2(centerY - camY, centerX - camX);
+            
+            ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(camX, camY);
+            ctx.lineTo(
+                camX + Math.cos(angle - fovRad / 2) * radius * scale,
+                camY + Math.sin(angle - fovRad / 2) * radius * scale
+            );
+            ctx.arc(camX, camY, radius * scale, angle - fovRad / 2, angle + fovRad / 2);
+            ctx.lineTo(camX, camY);
+            ctx.fill();
+            ctx.stroke();
+
+            // Kamera bilgisi
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = 'bold 12px Segoe UI';
+            ctx.fillText('Kamera', camX + 15, camY - 10);
+            ctx.font = '10px Segoe UI';
+            ctx.fillText(`Z: ${lookFromZ}m`, camX + 15, camY + 5);
+            
+            // Yön bilgisi ekle
+            const direction = getDirectionName(camY, camX, centerY, centerX);
+            ctx.fillStyle = '#ffeb3b';
+            ctx.font = 'bold 14px Segoe UI';
+            ctx.fillText(`📷 Kamera Bakış Yönü: ${direction}`, 20, 30);
+            
+            // Radius gösterimi
+            ctx.fillStyle = '#81c784';
+            ctx.font = '11px Segoe UI';
+            const midX = (camX + centerX) / 2;
+            const midY = (camY + centerY) / 2;
+            ctx.fillText(`Radius: ${radius}`, midX, midY - 10);
+            
+            // Bilgi kutusu
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, canvas.height - 70, 280, 60);
+            
+            ctx.fillStyle = '#4fc3f7';
+            ctx.font = 'bold 11px Segoe UI';
+            ctx.fillText('ℹ️ Görünüm:', 20, canvas.height - 52);
+            ctx.font = '10px Segoe UI';
+            ctx.fillText(`• Kırmızı ok: Kamera pozisyonu ve bakış yönü`, 20, canvas.height - 35);
+            ctx.fillText(`• Mavi nokta: Render merkezi (lookat noktası)`, 20, canvas.height - 20);
+        }
+
+        function updateRCode() {
+            const lat = document.getElementById('center-lat').value;
+            const lon = document.getElementById('center-lon').value;
+            const lookFromX = document.getElementById('lookfrom-x').value;
+            const lookFromY = document.getElementById('lookfrom-y').value;
+            const lookFromZ = document.getElementById('lookfrom-z').value;
+            const fov = document.getElementById('fov').value;
+            const radius = document.getElementById('radius').value;
+            const theta = document.getElementById('theta').value;
+            const phi = document.getElementById('phi').value;
+
+            // Yeni ayarlar
+            const layerBuildings = document.getElementById('layer-buildings').checked;
+            const layerParks = document.getElementById('layer-parks').checked;
+            const layerWater = document.getElementById('layer-water').checked;
+            const layerRoads = document.getElementById('layer-roads').checked;
+            const layerRails = document.getElementById('layer-rails').checked;
+            const layerLanduse = document.getElementById('layer-landuse').checked;
+
+            const colorBldLow = document.getElementById('color-bld-low').value;
+            const colorBldMid = document.getElementById('color-bld-mid').value;
+            const colorBldHigh = document.getElementById('color-bld-high').value;
+            const colorPark = document.getElementById('color-park').value;
+            const colorWater = document.getElementById('color-water').value;
+            const colorRoad = document.getElementById('color-road').value;
+            const colorRoadHi = document.getElementById('color-road-hi').value;
+            const colorLanduse = document.getElementById('color-landuse').value;
+
+            const bldHeightMult = document.getElementById('bld-height-mult').value;
+            const waterFuzz = document.getElementById('water-fuzz').value;
+            const roadWidth = document.getElementById('road-width').value;
+            const railWidth = document.getElementById('rail-width').value;
+
+            const renderWidth = document.getElementById('render-width').value;
+            const renderHeight = document.getElementById('render-height').value;
+            const renderSamples = document.getElementById('render-samples').value;
+            const renderDenoise = document.getElementById('render-denoise').checked;
+            const renderAmbient = document.getElementById('render-ambient').checked;
+
+            const lightIntensity = document.getElementById('light-intensity').value;
+            const lightX = document.getElementById('light-x').value;
+            const lightY = document.getElementById('light-y').value;
+            const lightZ = document.getElementById('light-z').value;
+            const lightRadius = document.getElementById('light-radius').value;
+
+            const bgHigh = document.getElementById('bg-high').value;
+            const bgLow = document.getElementById('bg-low').value;
+
+            const code = `# Rayshader 3D Harita Render Scripti
+# Oluşturulma: ${new Date().toLocaleString('tr-TR')}
+
+# Gerekli kütüphaneler
+pacman::p_load(
+    osmdata, sf, dplyr, rayrender
+)
+
+# Merkez koordinatları
+lon <- ${lon}
+lat <- ${lat}
+
+ctr_wgs <- sf::st_sfc(
+    sf::st_point(c(lon, lat)), crs = 4326
+)
+
+# UTM projeksiyonu
+utm_epsg <- function(lon, lat) {
+    stopifnot(is.finite(lon), is.finite(lat))
+    if (lat >= 84) return(32661)
+    if (lat <= -80) return(32761)
+    zone <- floor((lon + 180) / 6) + 1
+    if (lat >= 0) 32600 + zone else 32700 + zone
+}
+
+crs_m <- utm_epsg(lon, lat)
+ctr_m <- sf::st_transform(ctr_wgs, crs_m)
+radius <- ${radius}
+aoi_m <- sf::st_buffer(ctr_m, radius)
+aoi_wgs <- sf::st_transform(aoi_m, 4326)
+bb <- sf::st_bbox(aoi_wgs)
+
+# OSM veri çekme fonksiyonları
+get_polys <- function(q) {
+    Sys.sleep(2)
+    tryCatch({
+        dat <- osmdata::osmdata_sf(q)
+        polys <- list()
+        if (!is.null(dat$osm_polygons) && nrow(dat$osm_polygons) > 0) {
+            polys[[length(polys) + 1]] <- sf::st_make_valid(dat$osm_polygons)
+        }
+        if (!is.null(dat$osm_multipolygons) && nrow(dat$osm_multipolygons) > 0) {
+            polys[[length(polys) + 1]] <- sf::st_make_valid(dat$osm_multipolygons)
+        }
+        if (!length(polys)) {
+            return(sf::st_sf(geometry = sf::st_sfc(crs = 4326)))
+        }
+        dplyr::bind_rows(polys)
+    }, error = function(e) {
+        message("Hata: ", conditionMessage(e))
+        return(sf::st_sf(geometry = sf::st_sfc(crs = 4326)))
+    })
+}
+
+get_lines <- function(q) {
+    tryCatch({
+        x <- osmdata::osmdata_sf(q)$osm_lines
+        if (is.null(x)) {
+            sf::st_sf(geometry = sf::st_sfc(crs = 4326))
+        } else {
+            sf::st_make_valid(x)
+        }
+    }, error = function(e) {
+        message("Hata: ", conditionMessage(e))
+        return(sf::st_sf(geometry = sf::st_sfc(crs = 4326)))
+    })
+}
+
+# OSM verilerini çek
+
+${layerBuildings ? `message("Binalar çekiliyor...")
+bld <- get_polys(osmdata::opq(bb, timeout = 180) |>
+    osmdata::add_osm_feature("building"))
+` : '# Binalar devre dışı\nbld <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+
+${layerLanduse ? `message("Arazi kullanımı çekiliyor...")
+landuse <- get_polys(osmdata::opq(bb, timeout = 180) |>
+    osmdata::add_osm_feature("landuse"))
+` : '# Arazi kullanımı devre dışı\nlanduse <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+${layerParks ? `
+green_cover <- if (nrow(landuse) > 0) {
+    subset(landuse, landuse %in% c("grass", "recreation_ground", "forest", "greenery"))
+} else {
+    sf::st_sf(geometry = sf::st_sfc(crs = 4326))
+}
+message("Parklar çekiliyor...")
+parks <- dplyr::bind_rows(
+    green_cover,
+    get_polys(osmdata::opq(bb, timeout = 180) |>
+        osmdata::add_osm_feature("leisure", "park")),
+    get_polys(osmdata::opq(bb, timeout = 180) |>
+        osmdata::add_osm_feature("natural", c("wood", "scrub")))
+)
+` : '# Parklar devre dışı\nparks <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+
+${layerWater ? `message("Su yüzeyleri çekiliyor...")
+water <- dplyr::bind_rows(
+    get_polys(osmdata::opq(bb, timeout = 180) |>
+        osmdata::add_osm_feature("natural", c("water", "bay", "sea", "lagoon"))),
+    get_polys(osmdata::opq(bb, timeout = 180) |>
+        osmdata::add_osm_feature("water", c("river", "riverbank", "sea", "harbor", "basin", "reservoir", "canal"))),
+    get_polys(osmdata::opq(bb, timeout = 180) |>
+        osmdata::add_osm_feature("waterway", "riverbank"))
+)
+if (nrow(water) > 0) water <- dplyr::distinct(water)
+` : '# Su yüzeyleri devre dışı\nwater <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+
+${layerRoads ? `message("Yollar çekiliyor...")
+roads <- get_lines(osmdata::opq(bb, timeout = 180) |>
+    osmdata::add_osm_feature("highway"))
+` : '# Yollar devre dışı\nroads <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+
+${layerRails ? `message("Demiryolları çekiliyor...")
+rails <- get_lines(osmdata::opq(bb, timeout = 180) |>
+    osmdata::add_osm_feature("railway"))
+` : '# Demiryolları devre dışı\nrails <- sf::st_sf(geometry = sf::st_sfc(crs = 4326))\n'}
+message("Veriler başarıyla çekildi!")
+# Verileri kırp ve projekte et
+clip_m <- function(x) {
+    if (is.null(x) || nrow(x) == 0) {
+        return(sf::st_sf(geometry = sf::st_sfc(crs = crs_m)))
+    }
+    x <- suppressWarnings(sf::st_intersection(x, aoi_wgs))
+    if (nrow(x) == 0) {
+        return(sf::st_sf(geometry = sf::st_sfc(crs = crs_m)))
+    }
+    sf::st_transform(x, crs_m)
+}
+
+bld <- clip_m(bld)
+parks <- clip_m(parks)
+landuse <- clip_m(landuse)
+water <- clip_m(water)
+
+if (nrow(water) > 0) {
+    water <- sf::st_collection_extract(water, "POLYGON")
+    if (nrow(water) > 0) {
+        water <- sf::st_cast(water, "MULTIPOLYGON")
+        water <- sf::st_make_valid(sf::st_union(water))
+        water <- sf::st_as_sf(water)
+    }
+}
+
+roads <- clip_m(roads)
+rails <- clip_m(rails)
+
+# Bina yükseklikleri
+if (nrow(bld) > 0) {
+    h_raw <- suppressWarnings(as.numeric(gsub(",", ".", bld$height)))
+    levraw <- suppressWarnings(as.numeric(gsub(",", ".", bld$\`building:levels\`)))
+    bld$h <- ifelse(!is.na(h_raw), h_raw,
+        ifelse(!is.na(levraw), pmax(levraw, 1) * 3.2, 12)
+    )
+    bld$h <- pmin(bld$h * ${bldHeightMult}, 80)
+}
+
+# Yol ve ray buffer'ları
+roads_buf <- if (nrow(roads) > 0) sf::st_buffer(roads, ${roadWidth}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
+rails_buf <- if (nrow(rails) > 0) sf::st_buffer(rails, ${railWidth}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
+roads_crown <- if (nrow(roads) > 0) sf::st_buffer(roads, ${roadWidth * 0.43}) else sf::st_sf(geometry = sf::st_sfc(crs = crs_m))
+
+# Merkeze kaydır
+center_xy <- sf::st_coordinates(ctr_m)[1, 1:2]
+recenter <- function(x) {
+    if (is.null(x) || nrow(x) == 0) return(x)
+    sf::st_geometry(x) <- sf::st_geometry(x) - center_xy
+    x 
+}
+
+bld <- recenter(bld)
+landuse <- recenter(landuse)
+parks <- recenter(parks)
+water <- recenter(water)
+roads_buf <- recenter(roads_buf)
+rails_buf <- recenter(rails_buf)
+roads_crown <- recenter(roads_crown)
+
+# Renk paleti ve materyaller
+col_bld_low <- "${colorBldLow}"
+col_bld_mid <- "${colorBldMid}"
+col_bld_high <- "${colorBldHigh}"
+col_landuse <- "${colorLanduse}"
+col_park <- "${colorPark}"
+col_road <- "${colorRoad}"
+col_road_hi <- "${colorRoadHi}"
+col_water <- "${colorWater}"
+
+mat_landuse <- rayrender::diffuse(col_landuse)
+mat_park <- rayrender::diffuse(col_park)
+mat_road <- rayrender::diffuse(col_road)
+mat_road_hi <- rayrender::diffuse(col_road_hi)
+mat_water <- rayrender::metal(color = col_water, fuzz = ${waterFuzz})
+
+# Sahne objelerini oluştur
+objs <- list()
+
+if (nrow(landuse) > 0) {
+    objs <- append(objs, list(
+        rayrender::extruded_polygon(landuse, top = 0.5, bottom = 0.02, material = mat_landuse)
+    ))
+}
+
+if (nrow(parks) > 0) {
+    objs <- append(objs, list(
+        rayrender::extruded_polygon(parks, top = 0.5, bottom = 0.02, material = mat_park)
+    ))
+}
+
+if (nrow(water) > 0) {
+    objs <- append(objs, list(
+        rayrender::extruded_polygon(water, top = 0.5, bottom = -1, material = mat_water)
+    ))
+}
+
+rr <- dplyr::bind_rows(roads_buf, rails_buf)
+if (nrow(rr) > 0) {
+    objs <- append(objs, list(
+        rayrender::extruded_polygon(rr, top = 1.0, bottom = 0.02, material = mat_road)
+    ))
+}
+
+if (nrow(roads_crown) > 0) {
+    objs <- append(objs, list(
+        rayrender::extruded_polygon(roads_crown, top = 1.12, bottom = 1.02, material = mat_road_hi)
+    ))
+}
+
+# Bina yükseklik kategorileri
+bin_buildings <- function(bld) {
+    bld <- bld[!is.na(bld$h) & is.finite(bld$h) & bld$h > 0, ]
+    if (nrow(bld) == 0) return(bld)
+    brks <- c(-Inf, 12, 24, Inf)
+    bld$bin <- cut(bld$h, breaks = brks, labels = c("low", "mid", "high"), 
+                   include.lowest = TRUE, right = TRUE)
+    bld
+}
+
+bld <- bin_buildings(bld)
+pal <- c(low = col_bld_low, mid = col_bld_mid, high = col_bld_high)
+mat_map <- setNames(lapply(pal, rayrender::diffuse), names(pal))
+
+# Binaları sahneye ekle
+add_buildings <- function(scene, b) {
+    if (is.null(b) || nrow(b) == 0) return(scene)
+    for(lev in levels(b$bin)) {
+        sel <- b[b$bin == lev, ]
+        if (nrow(sel)) {
+            scene <- rayrender::add_object(scene,
+                rayrender::extruded_polygon(sel, data_column_top = "h", 
+                                          scale_data = 1, material = mat_map[[lev]]))
+        }
+    }
+    scene
+}
+
+# Sahneyi oluştur
+scene <- objs[[1]]
+if (length(objs) > 1) for (i in 2:length(objs)) scene <- rayrender::add_object(scene, objs[[i]])
+scene <- add_buildings(scene, bld)
+
+# Kamera ayarları
+lookfrom <- c(${lookFromX}, ${lookFromZ}, ${lookFromY})
+lookat <- c(0, 50, 10)
+
+# Işık kaynağı
+scene <- rayrender::add_object(scene,
+    rayrender::sphere(
+        x = ${lightX}, y = ${lightY}, z = ${lightZ}, 
+        radius = ${lightRadius},
+        material = rayrender::light(intensity = ${lightIntensity})
+    )
+)
+
+# Render
+rayrender::render_scene(
+    scene = scene,
+    lookfrom = lookfrom,
+    lookat = lookat,
+    fov = ${fov},
+    width = ${renderWidth}, 
+    height = ${renderHeight},
+    samples = ${renderSamples},
+    sample_method = "sobol",
+    aperture = 0,
+    denoise = ${renderDenoise ? 'TRUE' : 'FALSE'},
+    ambient_light = ${renderAmbient ? 'TRUE' : 'FALSE'},
+    clamp_value = 1,
+    min_variance = 1e-15,
+    backgroundhigh = "${bgHigh}",
+    backgroundlow = "${bgLow}",
+    parallel = TRUE,
+    interactive = FALSE,
+    filename = "render-output.png"
+)`;
+
+            document.getElementById('r-code').textContent = code;
+            document.getElementById('coords-info').textContent = 
+                `Merkez: ${parseFloat(lat).toFixed(6)}, ${parseFloat(lon).toFixed(6)} | Radius: ${radius}m`;
+        }
+
+        function updateMapCenter() {
+            const lat = parseFloat(document.getElementById('center-lat').value);
+            const lon = parseFloat(document.getElementById('center-lon').value);
+            
+            map.setView([lat, lon], 13);
+            
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+            } else {
+                marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+                marker.on('dragend', function(e) {
+                    const pos = marker.getLatLng();
+                    document.getElementById('center-lat').value = pos.lat.toFixed(6);
+                    document.getElementById('center-lon').value = pos.lng.toFixed(6);
+                    updateRadiusCircle();
+                    updateRCode();
+                });
+            }
+            
+            updateRadiusCircle();
+            updateRCode();
+        }
+
+        function copyCode() {
+            const code = document.getElementById('r-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('R kodu panoya kopyalandı!');
+            });
+        }
+
+        function applyPreset(type) {
+            const presets = {
+                aerial: {
+                    x: 0, y: 0, z: 3000, fov: 40, radius: 2000, theta: 0, phi: 90
+                },
+                street: {
+                    x: 500, y: -800, z: 200, fov: 75, radius: 500, theta: 45, phi: 15
+                },
+                bird: {
+                    x: -800, y: -1200, z: 1500, fov: 60, radius: 1000, theta: 45, phi: 35
+                },
+                dramatic: {
+                    x: -1500, y: -1800, z: 800, fov: 85, radius: 1500, theta: 60, phi: 20
+                }
+            };
+
+            const preset = presets[type];
+            document.getElementById('lookfrom-x').value = preset.x;
+            document.getElementById('lookfrom-y').value = preset.y;
+            document.getElementById('lookfrom-z').value = preset.z;
+            document.getElementById('fov').value = preset.fov;
+            document.getElementById('radius').value = preset.radius;
+            document.getElementById('theta').value = preset.theta;
+            document.getElementById('phi').value = preset.phi;
+
+            // Değer göstergelerini güncelle
+            params.forEach(param => {
+                const input = document.getElementById(param);
+                const display = document.getElementById(param + '-val');
+                let value = input.value;
+                if (param === 'fov' || param === 'theta' || param === 'phi') {
+                    display.textContent = value + '°';
+                } else {
+                    display.textContent = value;
+                }
+            });
+
+            updateRadiusCircle();
+            draw3DPreview();
+            updateRCode();
+        }
+
+        function exportSettings() {
+            const settings = {
+                location: {
+                    lat: document.getElementById('center-lat').value,
+                    lon: document.getElementById('center-lon').value
+                },
+                camera: {
+                    lookfrom: {
+                        x: document.getElementById('lookfrom-x').value,
+                        y: document.getElementById('lookfrom-y').value,
+                        z: document.getElementById('lookfrom-z').value
+                    },
+                    fov: document.getElementById('fov').value,
+                    radius: document.getElementById('radius').value,
+                    theta: document.getElementById('theta').value,
+                    phi: document.getElementById('phi').value
+                }
+            };
+
+            const json = JSON.stringify(settings, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'rayshader_settings.json';
+            a.click();
+        }
+
+        // Tab geçiş fonksiyonu
+        function switchTab(tabName) {
+            // Tüm tab'ları gizle
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Seçili tab'ı göster
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Yeni UI elementleri için event listener'lar
+        function setupNewListeners() {
+            // Mini slider'lar için
+            const miniSliders = [
+                { id: 'bld-height-mult', display: 'bld-height-mult-val', decimals: 1 },
+                { id: 'water-fuzz', display: 'water-fuzz-val', decimals: 1 },
+                { id: 'road-width', display: 'road-width-val', decimals: 1 },
+                { id: 'rail-width', display: 'rail-width-val', decimals: 1 },
+                { id: 'render-width', display: 'render-width-val', decimals: 0 },
+                { id: 'render-height', display: 'render-height-val', decimals: 0 },
+                { id: 'render-samples', display: 'render-samples-val', decimals: 0 },
+                { id: 'light-intensity', display: 'light-intensity-val', decimals: 0 },
+                { id: 'light-x', display: 'light-x-val', decimals: 0 },
+                { id: 'light-y', display: 'light-y-val', decimals: 0 },
+                { id: 'light-z', display: 'light-z-val', decimals: 0 },
+                { id: 'light-radius', display: 'light-radius-val', decimals: 0 }
+            ];
+
+            miniSliders.forEach(slider => {
+                const input = document.getElementById(slider.id);
+                const display = document.getElementById(slider.display);
+                
+                input.addEventListener('input', function() {
+                    const value = parseFloat(this.value);
+                    display.textContent = value.toFixed(slider.decimals);
+                    updateRCode();
+                });
+            });
+
+            // Checkbox'lar için
+            const checkboxes = [
+                'layer-buildings', 'layer-parks', 'layer-water', 
+                'layer-roads', 'layer-rails', 'layer-landuse',
+                'render-denoise', 'render-ambient'
+            ];
+
+            checkboxes.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateRCode);
+            });
+
+            // Color picker'lar için
+            const colorPickers = [
+                'color-bld-low', 'color-bld-mid', 'color-bld-high',
+                'color-park', 'color-water', 'color-road', 'color-road-hi',
+                'color-landuse', 'bg-high', 'bg-low'
+            ];
+
+            colorPickers.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateRCode);
+            });
+
+            // Aspect ratio seçimi için
+            document.getElementById('aspect-ratio').addEventListener('change', function() {
+                const customDiv = document.getElementById('custom-dimensions');
+                const widthInput = document.getElementById('render-width');
+                const heightInput = document.getElementById('render-height');
+                const widthDisplay = document.getElementById('render-width-val');
+                const heightDisplay = document.getElementById('render-height-val');
+                
+                const ratios = {
+                    '16:9': { w: 1920, h: 1080 },
+                    '1:1': { w: 1800, h: 1800 },
+                    '4:3': { w: 1600, h: 1200 },
+                    '21:9': { w: 2560, h: 1080 },
+                    '9:16': { w: 1080, h: 1920 }
+                };
+                
+                if (this.value === 'custom') {
+                    customDiv.style.display = 'block';
+                } else {
+                    customDiv.style.display = 'none';
+                    const dimensions = ratios[this.value];
+                    widthInput.value = dimensions.w;
+                    heightInput.value = dimensions.h;
+                    widthDisplay.textContent = dimensions.w;
+                    heightDisplay.textContent = dimensions.h;
+                    updateRCode();
+                }
+            });
+        }
+
+        // İlk render
+        setupNewListeners();
+        
+        // Marker'ı başlat
+        const initialLat = parseFloat(document.getElementById('center-lat').value);
+        const initialLon = parseFloat(document.getElementById('center-lon').value);
+        
+        marker = L.marker([initialLat, initialLon], {draggable: true}).addTo(map);
+        marker.on('dragend', function(e) {
+            const pos = marker.getLatLng();
+            document.getElementById('center-lat').value = pos.lat.toFixed(6);
+            document.getElementById('center-lon').value = pos.lng.toFixed(6);
+            updateRadiusCircle();
+            updateRCode();
+        });
+        
+        updateRadiusCircle();
+        updateRCode();
+        draw3DPreview();
+    </script>
+</body>
+</html>

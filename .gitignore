@@ -1,0 +1,26 @@
+# R specific
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+*~
+
+# Output files
+*.png
+*.jpg
+*.jpeg
+renders/
+output/
