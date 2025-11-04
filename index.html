@@ -166,6 +166,64 @@
         input[type="range"] {
             width: 100%;
             margin-top: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
+            outline: none;
+            touch-action: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid #1e1e1e;
+            box-shadow: 0 2px 8px rgba(79, 195, 247, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover,
+        input[type="range"]::-webkit-slider-thumb:active {
+            background: #29b6f6;
+            transform: scale(1.2);
+            box-shadow: 0 3px 12px rgba(79, 195, 247, 0.7);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid #1e1e1e;
+            box-shadow: 0 2px 8px rgba(79, 195, 247, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover,
+        input[type="range"]::-moz-range-thumb:active {
+            background: #29b6f6;
+            transform: scale(1.2);
+            box-shadow: 0 3px 12px rgba(79, 195, 247, 0.7);
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 8px;
+            background: #333;
+            border-radius: 5px;
         }
 
         .value-display {
@@ -357,6 +415,7 @@
         .mini-slider {
             flex: 1;
             margin: 0;
+            touch-action: none;
         }
 
         .mini-value {
@@ -585,6 +644,27 @@
             input[type="color"] {
                 width: 50px;
                 height: 25px;
+            }
+
+            input[type="range"] {
+                height: 12px;
+                margin: 15px 0;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 32px;
+                height: 32px;
+                border: 4px solid #1e1e1e;
+            }
+
+            input[type="range"]::-moz-range-thumb {
+                width: 32px;
+                height: 32px;
+                border: 4px solid #1e1e1e;
+            }
+
+            .control-group {
+                padding: 15px 0;
             }
         }
 
