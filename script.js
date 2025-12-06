@@ -1381,9 +1381,9 @@ function createSceneObjects(data, centerLat, centerLon) {
                 mesh.receiveShadow = true;
 
                 // Y-Offset
-                let yOffset = 1.2; // Above parks
+                let yOffset = 2.2; // Roads/Rails at building level
                 if (el.tags && el.tags.bridge === 'yes') {
-                    yOffset = 10; // Bridge height
+                    yOffset = 15; // Bridge height
                 }
 
                 mesh.position.y = yOffset;
@@ -1429,15 +1429,15 @@ function createSceneObjects(data, centerLat, centerLon) {
                 }
 
                 // Buildings sit on top of the "ground" layers
-                yOffset = 1.2;
+                yOffset = 2.2;
 
             } else if (type === 'water') {
                 height = 0.2; // Thin layer
-                yOffset = 0.8; // Clearly above grid
+                yOffset = 2.0; // Base "Ground" Level
                 material = matWater;
             } else if (type === 'park') {
                 height = 0.2; // Thin layer
-                yOffset = 1.0; // Above water
+                yOffset = 2.1; // Slightly above water
                 material = matPark;
             }
 
