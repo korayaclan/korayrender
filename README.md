@@ -5,6 +5,21 @@ Interactive web tool for generating 3D map visualizations using RayRender in R.
 ![KorayRender Interface](https://img.shields.io/badge/Status-Active-success)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
+## KorayRender v2 - Live 3D Preview 🌟
+
+🚀 KorayRender has been completely overhauled! You can now see a Live 3D Preview in your browser before heading to RStudio. Modern interface, Glassmorphism design, and instant rendering joy... 👇 
+
+✨ What's New: 
+🔹 Three.js Integration: See buildings, parks, and water in 3D instantly. 
+🔹 Layer Filtering: Hide unwanted details with a single click. 
+🔹 Modern UI: Sleek dark theme and intuitive controls.
+
+🗺️ Navigate the map, adjust your angle, and auto-generate your R code. See what the result looks like in seconds before spending hours rendering with Rayrender.
+
+Try it out: 🔗🌐
+https://korayaclan.github.io/korayrender/
+
+
 ## 🌟 Features
 
 - **Interactive Map Interface**: Select any location on OpenStreetMap
