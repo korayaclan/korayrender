@@ -972,16 +972,53 @@ updateRCode();
 
 let scene, camera, renderer, controls;
 let buildingsGroup;
+let abortController = null;
 
 function openPreviewModal() {
     document.getElementById('preview-modal').style.display = 'block';
+
+    // Reset Loading State
+    const loader = document.getElementById('preview-loading');
+    loader.style.display = 'flex';
+    loader.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Fetching OSM Data...';
+
     init3DPreview();
+
+    // Reset Camera if re-opening
+    if (camera && controls) {
+        camera.position.set(0, 1000, 1000);
+        camera.lookAt(0, 0, 0);
+        controls.reset();
+        controls.update();
+    }
+
     fetchOSMData();
 }
 
 function closePreviewModal() {
     document.getElementById('preview-modal').style.display = 'none';
-    // Clean up Three.js resources if needed
+
+    // Abort pending fetch
+    if (abortController) {
+        abortController.abort();
+        abortController = null;
+    }
+
+    // Clear Scene Objects
+    if (buildingsGroup) {
+        while (buildingsGroup.children.length > 0) {
+            const obj = buildingsGroup.children[0];
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(m => m.dispose());
+                } else {
+                    obj.material.dispose();
+                }
+            }
+            buildingsGroup.remove(obj);
+        }
+    }
 }
 
 function init3DPreview() {
@@ -1122,9 +1159,14 @@ function fetchOSMData() {
 
     const url = 'https://overpass-api.de/api/interpreter';
 
+    // Abort previous controller if exists
+    if (abortController) abortController.abort();
+    abortController = new AbortController();
+
     fetch(url, {
         method: 'POST',
-        body: query
+        body: query,
+        signal: abortController.signal
     })
         .then(response => response.json())
         .then(data => {
@@ -1132,6 +1174,10 @@ function fetchOSMData() {
             document.getElementById('preview-loading').style.display = 'none';
         })
         .catch(error => {
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted');
+                return;
+            }
             console.error('Error fetching OSM data:', error);
             document.getElementById('preview-loading').innerHTML = '<i class="ph ph-warning"></i> Error fetching data';
         });
@@ -1253,6 +1299,7 @@ function createSceneObjects(data, centerLat, centerLon) {
 
     data.elements.forEach(el => {
         if (el.type === 'way' && el.nodes) {
+            if (!el.tags) el.tags = {}; // Safe guard for missing tags
             // Determine type and visibility
             let type = null;
             let width = 2; // Default width in meters
@@ -1334,9 +1381,9 @@ function createSceneObjects(data, centerLat, centerLon) {
                 mesh.receiveShadow = true;
 
                 // Y-Offset
-                let yOffset = 0.1; // Just above ground
+                let yOffset = 1.2; // Above parks
                 if (el.tags && el.tags.bridge === 'yes') {
-                    yOffset = 8; // Bridge height
+                    yOffset = 10; // Bridge height
                 }
 
                 mesh.position.y = yOffset;
@@ -1381,13 +1428,16 @@ function createSceneObjects(data, centerLat, centerLon) {
                     material = matBuilding; // Default Karton look
                 }
 
+                // Buildings sit on top of the "ground" layers
+                yOffset = 1.2;
+
             } else if (type === 'water') {
-                height = 1;
-                yOffset = -1; // Slightly below ground
+                height = 0.2; // Thin layer
+                yOffset = 0.8; // Clearly above grid
                 material = matWater;
             } else if (type === 'park') {
-                height = 0.5;
-                yOffset = 0.1; // Slightly above ground
+                height = 0.2; // Thin layer
+                yOffset = 1.0; // Above water
                 material = matPark;
             }
 
