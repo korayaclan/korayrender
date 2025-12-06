@@ -1210,6 +1210,7 @@ function createSceneObjects(data, centerLat, centerLon) {
 
     // 1. Grid Helper (Previous Design)
     const gridHelper = new THREE.GridHelper(4000, 40, 0x333333, 0x222222);
+    gridHelper.position.y = 0;
     buildingsGroup.add(gridHelper);
 
     // Binalar: "Kil / Karton" görünümü (Mat)
@@ -1381,7 +1382,7 @@ function createSceneObjects(data, centerLat, centerLon) {
                 mesh.receiveShadow = true;
 
                 // Y-Offset
-                let yOffset = 2.2; // Roads/Rails at building level
+                let yOffset = 1.2; // Roads/Rails at building level
                 if (el.tags && el.tags.bridge === 'yes') {
                     yOffset = 15; // Bridge height
                 }
@@ -1429,15 +1430,15 @@ function createSceneObjects(data, centerLat, centerLon) {
                 }
 
                 // Buildings sit on top of the "ground" layers
-                yOffset = 2.2;
+                yOffset = 1.2;
 
             } else if (type === 'water') {
                 height = 0.2; // Thin layer
-                yOffset = 2.0; // Base "Ground" Level
+                yOffset = 0.2; // Base "Ground" Level
                 material = matWater;
             } else if (type === 'park') {
                 height = 0.2; // Thin layer
-                yOffset = 2.1; // Slightly above water
+                yOffset = 1.0; // Slightly above water
                 material = matPark;
             }
 
